@@ -51,7 +51,6 @@ class _QuizState extends State<Quiz> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
-    print('jello world');
     _controller.dispose();
     super.dispose();
   }
