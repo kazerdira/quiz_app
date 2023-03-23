@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:quiz_app/common/constants/colors.dart';
@@ -35,24 +36,24 @@ class Quiz extends StatefulWidget {
 class _QuizState extends State<Quiz> with SingleTickerProviderStateMixin {
   int questNum = 0;
   int result = 0;
-  late AnimationController _controller;
-  late ColorTween _colorTween;
-  late Animation<Color?> _colorAnimation;
+  Color _color = Colors.red; // starting color
+  final _random = Random();
+
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-    _colorTween = ColorTween(begin: Colors.red, end: Colors.blue);
-    _colorAnimation = _colorTween.animate(_controller);
+    _startColorAnimation();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  void _startColorAnimation() {
+    Future.delayed(Duration(seconds: 1)).then((_) {
+      setState(() {
+        // generate a random color
+        _color = Color.fromRGBO(_random.nextInt(256), _random.nextInt(256),
+            _random.nextInt(256), 1);
+        _startColorAnimation(); // repeat the animation
+      });
+    });
   }
 
   final List questions = [
@@ -111,37 +112,48 @@ class _QuizState extends State<Quiz> with SingleTickerProviderStateMixin {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Stack(children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 500),
-            height: MediaQuery.of(context).size.height / 4,
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.only(bottom: 60),
-            decoration: BoxDecoration(
-                color: _colorAnimation.value,
-                //   gradient: ,
-                /* LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColor().deepPink.withOpacity(0.5),
-                      AppColor().blueViolet.withOpacity(0.8),
-                      AppColor().indigo..withOpacity(0.8),
-                    ]), */
-                borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(60),
-                    bottomRight: Radius.circular(80))),
-            child: Center(
-              child: Text(
-                questions[questNum]['question'],
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-        ]),
+        TweenAnimationBuilder(
+            tween: ColorTween(begin: _color, end: _color.withOpacity(0.7)),
+            duration: Duration(milliseconds: 1500),
+            curve: Curves.easeInOut,
+            builder: (_, color, child) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 1500),
+                height: MediaQuery.of(context).size.height / 4,
+                width: MediaQuery.of(context).size.width,
+                margin: const EdgeInsets.only(bottom: 60),
+                decoration: BoxDecoration(
+                    color: _color,
+                    //   gradient: ,
+                    /* LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColor().deepPink.withOpacity(0.5),
+                    AppColor().blueViolet.withOpacity(0.8),
+                    AppColor().indigo..withOpacity(0.8),
+                  ]), */
+                    borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(60),
+                        bottomRight: Radius.circular(80))),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Text(
+                        questions[questNum]['question'],
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
         ...List.generate(questions[questNum]['answer'].length,
             (index) => answerBox(questions[questNum]['answer'][index]))
         /* answerBox(answers[0]),
@@ -167,7 +179,7 @@ class _QuizState extends State<Quiz> with SingleTickerProviderStateMixin {
                 end: Alignment.bottomRight,
                 colors: [AppColor().skyBlue, AppColor().turquoise])),
         padding: EdgeInsets.all(8),
-        margin: EdgeInsets.all(40),
+        margin: EdgeInsets.all(20),
         height: 80,
         width: 280,
         child: Center(
