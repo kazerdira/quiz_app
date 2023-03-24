@@ -36,18 +36,37 @@ class Quiz extends StatefulWidget {
 class _QuizState extends State<Quiz> with SingleTickerProviderStateMixin {
   int questNum = 0;
   int result = 0;
-  Color _color = Colors.red; // starting color
+  Color _color = AppColor().magenta; // starting color
   final _random = Random();
+  bool? changeTS;
+
+  TextStyle _style = const TextStyle(
+      color: Colors.grey, fontSize: 18, fontWeight: FontWeight.w300);
+
+  TextStyle style1 = const TextStyle(
+      color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600);
 
   @override
   void initState() {
     super.initState();
+    changeStyle();
+
     _startColorAnimation();
+  }
+
+  void changeStyle() {
+    Future.delayed(const Duration(milliseconds: 500)).then((_) {
+      setState(() {
+        _style = style1;
+      });
+    });
   }
 
   void _startColorAnimation() {
     Future.delayed(Duration(seconds: 1)).then((_) {
       setState(() {
+        changeTS = true;
+
         // generate a random color
         _color = Color.fromRGBO(_random.nextInt(256), _random.nextInt(256),
             _random.nextInt(256), 1);
@@ -124,15 +143,6 @@ class _QuizState extends State<Quiz> with SingleTickerProviderStateMixin {
                 margin: const EdgeInsets.only(bottom: 60),
                 decoration: BoxDecoration(
                     color: _color,
-                    //   gradient: ,
-                    /* LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColor().deepPink.withOpacity(0.5),
-                    AppColor().blueViolet.withOpacity(0.8),
-                    AppColor().indigo..withOpacity(0.8),
-                  ]), */
                     borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(60),
                         bottomRight: Radius.circular(80))),
@@ -142,12 +152,13 @@ class _QuizState extends State<Quiz> with SingleTickerProviderStateMixin {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.center,
-                      child: Text(
-                        questions[questNum]['question'],
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600),
+                      child: AnimatedDefaultTextStyle(
+                        duration: const Duration(seconds: 1),
+                        curve: Curves.bounceInOut,
+                        style: _style,
+                        child: Text(
+                          questions[questNum]['question'],
+                        ),
                       ),
                     ),
                   ),
